@@ -13,21 +13,21 @@ and appy lateral inhibition when needed.
 import random
 import numpy as np
 from matplotlib import pyplot as plt
-from standardVal_one import standardVal as par
+from fixedVal_one import fixedVal as par
 
 class neuron:
     def __init__(self):
         self.t_ref = 30
         self.t_rest = -1
-        self.p = par.Prest
+        self.P = par.Prest
         self.Prest = par.Prest
         
     def check(self):
-        if self.p >= self.Pth:
-            self.p = self.Prest
+        if self.P >= self.Pth:
+            self.P = self.Prest
             return 1
-        elif self.p < par.Pmin:
-            self.p = par.Prest
+        elif self.P < par.Pmin:
+            self.P = par.Prest
             return 0
         else:
             return 0
