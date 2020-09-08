@@ -9,7 +9,6 @@ This is another script which regulates the behavior of the neurons
 """
 
 import imageio
-import random
 import numpy as np
 from neuron_two import neuron
 from fixedVal_one import fixedVal as par

@@ -7,7 +7,6 @@ Created on Wed Aug 26 23:41:05 2020
 Implements Spike Time Dependent Plasticity (STDP) rule for estimating weights and curve
 """
 import numpy as np
-from matplotlib import pyplot as plt
 from fixedVal_one import fixedVal as par
 
 #STDP learning curve reinforcement

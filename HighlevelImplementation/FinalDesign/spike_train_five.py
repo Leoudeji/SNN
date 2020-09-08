@@ -11,7 +11,6 @@ import math
 import imageio
 import numpy as np
 from numpy import interp
-from matplotlib import pyplot as plt
 from fixedVal_one import fixedVal as par
 from receptive_field_four import rf
 

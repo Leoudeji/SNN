@@ -10,9 +10,7 @@ and appy lateral inhibition when needed.
 
 """
 
-import random
-import numpy as np
-from matplotlib import pyplot as plt
+
 from fixedVal_one import fixedVal as par
 
 class neuron:

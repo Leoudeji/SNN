@@ -11,7 +11,6 @@ import imageio
 import time as timing
 import random
 import numpy as np
-import os
 from matplotlib import pyplot as plt
 from fixedVal_one import fixedVal as par
 from neuron_two import neuron
@@ -56,7 +55,7 @@ for i in range(par.n):
 for k in range(par.epoch):
     for i in range(3):
     #print(i," ",k)
-        img = imageio.imread("training/{}.png".format(i))
+        img = imageio.imread("newTestTrain/training/{}.png".format(i))
     
     
     #Convolve image with receptive field

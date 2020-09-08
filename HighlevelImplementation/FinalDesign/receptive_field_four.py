@@ -10,7 +10,6 @@ of the original image visible
 
 import numpy as np
 import imageio
-from fixedVal_one import fixedVal as par
 
 def rf(inp):
     sca1 = 0.625
@@ -51,18 +50,18 @@ def rf(inp):
 #            pot[i][j] = summ
 #    return pot
         
-if __name__ == '__main__':
-    img = imageio.imread("images/" + str(100) + ".png")
-    pot = rf(img)
-    max_a = []
-    min_a = []
-    for i in pot:
-        max_a.append(max(i))
-        min_a.append(min(i))
-    for i in range(16):
-        temp = ''
-        for j in pot[i]:
-            temp += '%02d ' % int(j)
-        print(temp)
-    print("max", max(max_a))
-    print("min", min(min_a))
+#if __name__ == '__main__':
+#    img = imageio.imread("images/" + str(100) + ".png")
+#    pot = rf(img)
+#    max_a = []
+#    min_a = []
+#    for i in pot:
+#        max_a.append(max(i))
+#        min_a.append(min(i))
+#    for i in range(16):
+#        temp = ''
+#        for j in pot[i]:
+#            temp += '%02d ' % int(j)
+#        print(temp)
+#    print("max", max(max_a))
+#    print("min", min(min_a))

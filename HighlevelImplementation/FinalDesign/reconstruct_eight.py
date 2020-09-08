@@ -40,7 +40,7 @@ def reconst_rf(weights, num):
 	return img
     
  
-if __name__ == '__main__':
-    img = imageio.imread("images2/" + "69" + ".png")
-    pot = rf(img)
-    reconst_rf(pot, 12)
+#if __name__ == '__main__':
+#    img = imageio.imread("images2/" + "69" + ".png")
+#    pot = rf(img)
+#    reconst_rf(pot, 12)
