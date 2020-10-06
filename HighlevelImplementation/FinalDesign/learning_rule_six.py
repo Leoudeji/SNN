@@ -5,6 +5,7 @@ Created on Wed Aug 26 23:41:05 2020
 @author: ludej
 
 Implements Spike Time Dependent Plasticity (STDP) rule for estimating weights and curve
+it updates weight rule based on changes and implements the STDP curve
 """
 import numpy as np
 from fixedVal_one import fixedVal as par

@@ -6,7 +6,8 @@ Created on Tue Aug 25 12:04:35 2020
 
 This is the first layer of the Spiking Neural Network. The neuron class takes
 in input and makes use of initialised parameters and methods to detect spikes
-and appy lateral inhibition when needed.
+and apply lateral inhibition when needed.
+This class embodies the characteristics and functions of the neuron in our network
 
 """
 
@@ -17,8 +18,15 @@ class neuron:
     def __init__(self):
         self.t_ref = 30
         self.t_rest = -1
-        self.P = par.Prest
+        self.P = par.Prest  #P = potential
         self.Prest = par.Prest
+        
+        #Added today Sept 9
+        '''
+        self.Pth = par.Pth
+        self.D = par.D
+        self.Pmin = par.Pmin
+        '''
         
     def check(self):
         if self.P >= self.Pth:
@@ -33,9 +41,15 @@ class neuron:
     def inhibit (self):
         self.P = par.Pmin
         
-    def initial(self, th):
-        self.Pth = th
+    #def initial(self, th):
+    def initial(self):
+        #self.Pth = th
         self.t_rest = -1
         self.P = par.Prest
     
+    #Added today sept 29 for learning_nine.py
+    def initialize(self,th):
+        self.Pth = th
+        self.t_rest = -1
+        self.P = par.Prest
 

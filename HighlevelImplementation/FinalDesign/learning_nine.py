@@ -8,7 +8,7 @@ This is the main script which calls all other scripts
 
 """
 import imageio
-import time as timing
+import time as timer
 import random
 import numpy as np
 from matplotlib import pyplot as plt
@@ -21,8 +21,8 @@ from threshold_seven import threshold
 from reconstruct_eight import reconst_weights
 
 
-start = timing.time()
-print ("Learning Weights:", start)
+start = timer.time()
+print ("Start time:", start)
 
 #potentials of output neurons
 pot_arrays = []
@@ -55,7 +55,10 @@ for i in range(par.n):
 for k in range(par.epoch):
     for i in range(3):
     #print(i," ",k)
-        img = imageio.imread("newTestTrain/training/{}.png".format(i))
+    
+        #img = imageio.imread("newTestTrain/training/{}.png".format(i)) 
+        
+        img = imageio.imread("oldTesttrain/training/{}.png".format(i))
     
     
     #Convolve image with receptive field
@@ -73,7 +76,9 @@ for k in range(par.epoch):
     var_D = par.D
     
     for x in layer2:
-        x.initial(par.Pth)
+        #x.initial(par.Pth)
+        x.initialize(par.Pth) #Added today Sept 29
+        
         
     #flag for lateral inhibition
     f_spike = 0
@@ -142,7 +147,7 @@ for k in range(par.epoch):
                         synapse[img_win][p] = par.w_min
                         
                         
-print ("total processing time: ", (timing.time() - start))
+print ("total processing time: ", (timer.time() - start))
 ttt = np.arange(0,len(pot_arrays[0]),1)
 Pth = []
 for i in range(len(ttt)):

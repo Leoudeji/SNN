@@ -6,7 +6,7 @@ Created on Wed Aug 26 23:41:39 2020
 
 This script calculates the threshold for an image based on its spiking activity
 """
-
+import imageio
 import numpy as np
 from fixedVal_one import fixedVal as par
 
@@ -22,11 +22,11 @@ def threshold(train):
     
     
 #if __name__ == '__main__':
-#    img = np.array(Image.open("mnist1/" + str(1) + ".png", 0))
+#    img = np.array(imageio.imread("oldTesttrain/training/" + str(1) + ".png", 0))
 #    print(img)
-    #pot = rf(img)
-    #train = np.array(encode(pot))
-    #print threshold(train)
+##    pot = rf(img)
+##    train = np.array(encode(pot))
+##    print (threshold(train))
 
 
 

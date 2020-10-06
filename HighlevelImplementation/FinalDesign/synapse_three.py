@@ -3,42 +3,36 @@
 Created on Wed Aug 26 23:32:13 2020
 
 @author: ludej
-This script is used to learn weights
+This script is used to append initial trained weight values to our network. 
+It also contains the names of images that will be used in this file
 """
 
 #Read and return weights produced by spike_train_five.py for  matching synapses
-def learned_weights_x():
-    ans = []
-    with open('weights.txt', 'r') as weight_file:
-        lines = weight_file.readlines()
-        for i in lines[0].split('\t'):
-            ans.append(float(i))
-    return ans
-    
-#Read and return weights produced by spike_train_five.py for matching synapses
-def learned_weights_o():
-    ans = []
-    
-    with open('weights.txt', 'r') as weight_file:
-        lines = weight_file.readlines()
-        for i in lines[1].split('\t'):
-            ans.append(float(i))
-    return ans 
-    
-def learned_weights_synapse(id):
-    ans = []
-    with open('weights.txt', 'r') as weight_file:
-        lines = weight_file.readlines()
-        if (len(lines) <= id):
-            return ans
-        for i in lines[id].split('\t'):
-            ans.append(float(i))
-    return ans
+
+import imageio
+
+#Reads the returns the weights produced by training
+#could use weights from weights.txt file
+def learned_weights():
+	image_names = ["0","1", "2", "3", "4", "5", "6","7","8","9"]
+	ans = []
+	for image in image_names:
+		temp = []
+		img = imageio.imread("oldTesttrain/training/" + image + ".png")
+		for i in img:
+			for j in i:
+				if(j==0):
+					temp.append(-0.7)
+				else:
+					temp.append(1)
+		ans.append(temp)
+	return ans
     
     
 #Show that we read the wieghts and processed them into a sequence of feed to be used for classification
 if __name__ == '__main__':
-    a = learned_weights_x()
+    #a = learned_weights_x()
+    a = learned_weights()
     print(a)
     
     #I could add the below:
