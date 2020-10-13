@@ -5,6 +5,7 @@ Created on Wed Aug 26 23:41:39 2020
 @author: ludej
 
 This script calculates the threshold for an image based on its spiking activity
+Leo - basically threshold adjustment
 """
 import imageio
 import numpy as np

@@ -68,7 +68,7 @@ def encode2(pixels):
             temp = np.zeros([(par.T+1),])
 
             #calculating firing rate proportional to the membrane potential
-            freq = interp(pixels[l][m], [0, 255], [1,20])
+            freq = interp(pixels[l][m], [0, 255], [1,20]) #redHat - Might need to replace this later
             #print(pot[l][m], freq)
             # print freq
 
