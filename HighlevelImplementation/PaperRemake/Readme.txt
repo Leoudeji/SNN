@@ -1,4 +1,17 @@
 Paper: https://arxiv.org/pdf/1903.12272.pdf
+paper on univeristy site: https://scholarworks.boisestate.edu/gss_2019/78/
+
+Authors:
+Dr Vishal Saxena (Associate Prof)
+-https://scholar.google.com/citations?user=ieARmYkAAAAJ&hl=en
+-https://www.ece.udel.edu/people/faculty/vishal-saxena/
+
+Dr John Chiasson
+-https://scholar.google.com/citations?user=ljWU7T0AAAAJ&hl=en
+
+Dr Ruthvik Vaila
+-https://scholar.google.com/citations?user=dBGCsa0AAAAJ&hl=en
+
 
 
 Ref:
@@ -20,9 +33,9 @@ Link 13:https://numpy.org/doc/stable/reference/random/generated/numpy.random.nor
 Link 14:https://stackoverflow.com/questions/35286540/display-an-image-with-python
 Link 15:https://www.google.com/search?q=Implement+STDP+in+python&rlz=1C1CHBF_enUS869US869&oq=Implement+STDP+in+python&aqs=chrome..69i57.7641j0j7&sourceid=chrome&ie=UTF-8
 
-Link 16:https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4522567/
+Link 16:https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4522567/ (Very good)
 Link 17:https://github.com/maael/SpikingNeuralNetwork
-Link 18:https://brian.readthedocs.io/en/1.4.1/reference-plasticity.html
+Link 18:https://brian.readthedocs.io/en/1.4.1/reference-plasticity.html  (good)
 
 Link 19:https://binds.cs.umass.edu/pdfs/stdp.pdf
 Link 20:http://spinnakermanchester.github.io/spynnaker/4.0.0/NewPlasticityRules-LabManual.pdf
@@ -37,4 +50,18 @@ Link 26:https://www.youtube.com/watch?v=kft1AJ9WVDk
 Link 27:https://www.youtube.com/watch?v=Py4xvZx-A1E
 Link 28:https://numpy.org/doc/stable/reference/generated/numpy.reshape.html
 Link 29:
+
+
+October 14th
+Link 29: https://brian.readthedocs.io/en/latest/ (very good)
+
+
+October 20th
+Link 30: https://www.youtube.com/watch?v=CNP2IAldEk8 (CNN)
+https://www.youtube.com/watch?v=BPBTmXKtFRQ (Very good CNN video)
+https://www.youtube.com/watch?v=ulq9DjCJPDU (CNN-sendex part1)
+https://www.youtube.com/watch?v=KlffppN47lc (CNN-sendex part2)
+https://github.com/ruthvik92 (Dr Rutvik Vaila's github)
+
+
 
