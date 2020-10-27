@@ -63,5 +63,25 @@ https://www.youtube.com/watch?v=ulq9DjCJPDU (CNN-sendex part1)
 https://www.youtube.com/watch?v=KlffppN47lc (CNN-sendex part2)
 https://github.com/ruthvik92 (Dr Rutvik Vaila's github)
 
+October 21th (3D convolution)
+Link 35: https://stackoverflow.com/questions/47441952/3d-convolution-in-python
+Link 36: https://stackoverflow.com/questions/60602649/triple-nested-sum-numpy
+Link 37: https://beginnersbook.com/2018/01/python-for-loop/
+Link 38 (v.impt): (https://groups.cs.umass.edu/binds/cs591nr-691nr-course-page/), (https://binds.cs.umass.edu/stdpMain.html), (https://binds.cs.umass.edu/bindsnet.html)
+
+
+October 25th - SNN networks, numpy asarray, convolution
+
+Link 39: https://www.csail.mit.edu/news/new-deep-learning-models-require-fewer-neurons
+Link 40: https://binds.cs.umass.edu/stdpMain.html
+Link 41: https://binds.cs.umass.edu/bindsnet.html
+Link 42: https://numpy.org/doc/stable/reference/generated/numpy.asarray.html 
+Link 43: https://github.com/ashushekar/image-convolution-from-scratch
+
+
+
+
+
+
 
 

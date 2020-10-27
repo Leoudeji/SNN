@@ -101,22 +101,22 @@ class SNN():
                 #if((-3<=i and i>=3) and (-3<=j and j>=3) )
                 total[i][j] = (frac1 * np.exp(-expp/(2*sigma1**2))) - (frac2 * np.exp(-expp/(2*sigma2**2)))
                 
-                '''
+                
                 #Added lines
-                total = total- np.mean(total)
-                total = total / np.max(total)
-                '''
+        total = total - np.mean(total)
+        total = total / np.max(np.abs(total))
+                
                 
         return total
     
     
     def plot_on_off_filter(on_center_filter, off_center_filter):
         plt.figure()
-        plt.colorbar(plt.pcolor(on_center_filter))
+        plt.colorbar(plt.pcolormesh(on_center_filter))
     
     
         plt.figure()
-        plt.colorbar(plt.pcolor(off_center_filter))
+        plt.colorbar(plt.pcolormesh(off_center_filter))
         
         
     #Multiply weights and images
@@ -133,24 +133,38 @@ class SNN():
     #6 - Implement the Spiking signal in pg 11 of 44 formula and make the raster plot of it against pixels (figure 12)
     #Keep the bins spaced at 10bins (10msecond) (gap = 2millisecond)
     
-    def spike_train(img):
-        G = params.GAMMA 
-        
+    def spike_img(img):
+        G = params.GAMMA
         pixel_H, pixel_W = img.shape
-        delay = np.zeros((img.shape))
         spike_img = np.zeros((img.shape))
         
         for i in range(pixel_H):
             for j in range(pixel_W):
-                if img[i][j] > G:
-                    spike_img[i][j] = img[i][j]
-                    delay[i][j] = 1 / img[i][j]
-        #plt.figure()
-        #plt.imshow(spike_img)
+                if ((img[i][j])) > G:
+                    #spike_img[i][j] = img[i][j]
+                    spike_img[i][j] = 1
+                  
         
-        #return delay
         return spike_img
-                    
+    
+    
+    
+    def spike_train(img):
+        #G = params.GAMMA 
+        
+        pixel_H, pixel_W = img.shape
+        delay = np.zeros((img.shape))
+        #delay_list = []
+        
+        for i in range(pixel_H):
+            for j in range(pixel_W):
+                #if ((img[i][j])) > G:
+                delay[i][j] = (1 / img[i][j]) * 1000
+                    #delay_list.append((img[i][j]).astype(int))
+        
+        
+        return delay
+     
     
     
     
@@ -179,59 +193,50 @@ class SNN():
     
     
     #8 - Raster Plot 2 - Pixel per neuron against time (Figure 12)
-    def raster_two(img):
-        
-        G = params.GAMMA 
-        
-        pixel_H, pixel_W = img.shape
-        delay = np.zeros((img.shape))
-        
-        for i in range(pixel_H):
-            for j in range(pixel_W):
-                if img[i][j] > G:
-                    
-                    delay[i][j] = 1 / img[i][j]
-        
-        return delay
-                    
+    
+    
+                  
         
         
-    #9 - Convolution layers and STDP 
+    #9 - New Kernel
     def new_plot_DOG(sigma1, sigma2):
        #Fix scale - Problem 
        
         dim = 5
+        chanls = 2
+        nlayers = 30
         
-        ctotal = np.zeros((dim,dim))
+        #dim_total = np.zeros((dim,dim))
+        #ctotal = np.zeros((dim,dim,chanls))
         
-        for i in range(dim):   #Leo - 5 x 5 filter size comes from page 5 of 44
-            for j in range(dim):
+        
+        '''
+        for p in range(chanls): #Lopp over channels
+            for i in range(dim):   #Leo - 5 x 5 filter size comes from page 5 of 44
+                for j in range(dim):
+        '''
+        
+        ctotal = np.random.normal(0.8, 0.01, size=(dim,dim, chanls, nlayers))  #I got this normal distfrom page 22
+        #ctotal = np.random.normal(0.8, 0.01, size=(dim,dim, chanls))  #I got this normal distfrom page 22
                 
-                frac1 = 1/(2 * np.pi * sigma1**2)
-                frac2 = 1/(2 * np.pi * sigma2**2)
-                
-                expp = ((i)**2)  + ((j)**2)
-                
-                #if((-3<=i and i>=3) and (-3<=j and j>=3) )
-                ctotal[i][j] = (frac1 * np.exp(-expp/(2*sigma1**2))) - (frac2 * np.exp(-expp/(2*sigma2**2)))
-                
-                '''
-                #Added lines
-                total = total- np.mean(total)
-                total = total / np.max(total)
-                '''
-                
+    
+        #Added lines
+        #ctotal = ctotal- np.mean(ctotal)
+        #ctotal = ctotal / np.max(ctotal)
+       
+        
+        
         return ctotal
   
         
-    
-    def convolution_3x3(img, kernel):
+    '''
+    def convolution_3x3(img, ctotal):
         (dim_x, dim_y) = img.shape
-        (ker_x, ker_y) = kernel.shape
+        (ker_x, ker_y) = ctotal.shape
         gam = 15
 
         matriz_convolucionada = np.zeros((dim_x, dim_y))
-
+        
         for i in range(dim_x):
             for j in range(dim_y):
                 resultado = 0
@@ -244,11 +249,11 @@ class SNN():
                                 if j + y not in range(dim_y):
                                     raise ValueError()
 
-                                resultado += img[i + x, j + y] * kernel[x + 1][y + 1]
-                                '''
-                                Para el kernel sumo un 1 a cada índice para que lo corra desde 0 hasta 2 y no de -1 a 1
-                                For the kernel I add a 1 to each index so that it runs from 0 to 2 and not from -1 to 1
-                                '''
+                                resultado += img[i + x, j + y] * ctotal[x + 1][y + 1]
+                                
+                                #Para el kernel sumo un 1 a cada índice para que lo corra desde 0 hasta 2 y no de -1 a 1
+                                #For the kernel I add a 1 to each index so that it runs from 0 to 2 and not from -1 to 1
+                                
                             except ValueError:
                                 pass
                     except ValueError:
@@ -256,8 +261,47 @@ class SNN():
                 if img[i][j] > gam:
                     matriz_convolucionada[i][j] = resultado
         return matriz_convolucionada
+    '''
+    
+    def convolution_3x3(spi_img, ctotal):
+        
+        if len(spi_img.shape)==2: #1 channel
+            spi_img = np.expand_dims(spi_img, axis=2)
+        
+        img_pixel1, img_pixel2,c_img = spi_img.shape
+        fh, fw, fc, n_layers= ctotal.shape
+        
+        #assert(c_img == n_layers) #had to update the dimension of my img to match that of the filter. Then update the use of "n_layers" below
+    
+        
+        npad_img = np.zeros((img_pixel1, img_pixel2, c_img)) #padded image
+        
+        for n in range(n_layers): #Loop over all layers
+            
+            for i in range(img_pixel1):
+                for j in range(img_pixel2):
+                
+                    #Run filter across image
+                    for m in range(fc):
+                        for k in range(fh):
+                            for l in range(fw):
+                                if 0 <= ((i+k)-fh < img_pixel1) and 0 <= ((j+l)-fw < img_pixel2):
+                                    npad_img[i][j][n] += spi_img[i + k - fh][j+l-fw][n] * ctotal[k][l][n] #changed npad_img[i][j][m] to npad_img[i][j][n] 
+                            
+        return npad_img
+        
         
     
+        
+    def plot_spike_train(img_list):
+        plt.figure()
+        for i in range(len(img_list)):
+            img = np.where(img_list[i].flatten()==1)[0]
+            try:
+                if len(img) > 0:
+                    plt.plot([i]*len(img), img, 'p', c='b')
+            except:
+                print(img)
     
     
     
@@ -267,9 +311,6 @@ class SNN():
     
     
     #11 Implement Learning
-    
-    
-    
     
     
     
@@ -298,10 +339,12 @@ if __name__ == "__main__":
     #Convolve with the on and off filter
     #Add Cmake grey for grey image - plt.imshow(img, cmap='gray')
     plt.figure()
-    plt.imshow((SNN.convolution(img, on_center_filter)),cmap='gray')
+    img_on = SNN.convolution(img, on_center_filter)
+    plt.imshow((img_on ),cmap='gray')
     
     plt.figure()
-    plt.imshow((SNN.convolution(img, off_center_filter)),cmap='gray')
+    img_off = SNN.convolution(img, off_center_filter)
+    plt.imshow((img_off),cmap='gray')
     
     '''
     comb = SNN.Weights_images(img,d)
@@ -311,8 +354,28 @@ if __name__ == "__main__":
     
     
     #Spiking image
+    
+    #spike_on
     plt.figure()
-    plt.imshow(SNN.spike_train(img),cmap='gray')
+    spi_on = SNN.spike_img(img_on)
+    plt.imshow(spi_on,cmap='gray')
+    
+    #spike_off
+    plt.figure()
+    spi_off = SNN.spike_img(img_off)
+    plt.imshow(spi_off,cmap='gray')
+    
+    
+    #Spike delay (train)
+    
+    plt.figure()
+    spi_tri_on = SNN.spike_train(img_on)
+    plt.imshow(spi_tri_on,cmap='gray')
+    
+    
+    plt.figure()
+    spi_tri_off = SNN.spike_train(img_off)
+    plt.imshow(spi_tri_off,cmap='gray')
     
     
     
@@ -321,12 +384,13 @@ if __name__ == "__main__":
     
     
     
-    #RAster 2 - figure 12
-    SNN.raster_two(img)
-
-    spi = img
+    #RAster 2 - figure 12: Plot of spike image against the delay
     plt.figure()
-    plt.eventplot(spi)
+    
+    plt.plot(spi_on,spi_tri_on,'o')
+    plt.axis([0, 8, 0, 600])
+    plt.show
+    #plt.eventplot(sp_plot)
     
     # Provide the title for the spike raster plot
     plt.title('Spike raster plot')
@@ -352,10 +416,13 @@ if __name__ == "__main__":
     conv_on_center_filter = SNN.new_plot_DOG(1,2)
     conv_off_center_filter = SNN.new_plot_DOG(2,1)
     
-    cImg = SNN.convolution_3x3(SNN.spike_train(img), on_center_filter)
+    #cImg = SNN.convolution_3x3(SNN.spike_train(img), conv_on_center_filter)
+    cImg = SNN.convolution_3x3(SNN.spike_img(spi_on), conv_on_center_filter)
     
     plt.figure()
     plt.imshow(cImg)
+    
+    
     
     
     
