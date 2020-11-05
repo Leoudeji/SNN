@@ -79,6 +79,13 @@ Link 42: https://numpy.org/doc/stable/reference/generated/numpy.asarray.html
 Link 43: https://github.com/ashushekar/image-convolution-from-scratch
 
 
+November 2 - 3D convolution
+Link 44 - http://www.songho.ca/dsp/convolution/convolution2d_example.html , http://www.songho.ca/dsp/ (very very good)
+Link 45 - https://medium.com/apache-mxnet/1d-3d-convolutions-explained-with-ms-excel-5f88c0f35941
+Link 46 - https://datascience-enthusiast.com/DL/Convolution_model_Step_by_Stepv2.html (Very good-contaims function for padding, and pooling too)
+
+
+
 
 
 

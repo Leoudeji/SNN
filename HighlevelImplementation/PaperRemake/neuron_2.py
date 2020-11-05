@@ -35,3 +35,7 @@ class Neuron:
 
   def solve(self):
     raise NotImplementedError("A neuron model needs a solve method")
+    
+
+        
+        
