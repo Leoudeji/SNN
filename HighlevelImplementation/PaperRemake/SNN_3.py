@@ -1,4 +1,4 @@
-#Leo Added this now
+
 # -*- coding: utf-8 -*-
 """
 Created on Mon Oct 12 19:45:19 2020
@@ -165,7 +165,41 @@ class SNN():
         
         
         return delay
-     
+    
+    def spike_plot(delay):
+        yp = np.ceil(delay)
+        delay_list = []
+        T = 20
+        
+        for t in range(T):
+            #temp = yp.copy().astype(int)
+            #temp[temp != t] = 0
+            #temp[temp == t] = 1
+            
+            temp = np.zeros_like(yp)
+            
+            
+            for i in range(temp.shape[0]):
+                for j in range(temp.shape[1]):
+                    if yp[i][j]==t:
+                        temp[i][j] = 1
+            
+            
+            delay_list.append(temp)
+            
+        return delay_list
+    
+        
+    def plot_spike_train(img_list):
+        plt.figure()
+        for i in range(len(img_list)):
+            img = np.where(img_list[i].flatten()==1)[0]
+            try:
+                if len(img) > 0:
+                    plt.plot([i]*len(img), img, 'p', c='b')
+            except:
+                print(img)
+    
     
     
     
@@ -294,16 +328,7 @@ class SNN():
         
     
         
-    def plot_spike_train(img_list):
-        plt.figure()
-        for i in range(len(img_list)):
-            img = np.where(img_list[i].flatten()==1)[0]
-            try:
-                if len(img) > 0:
-                    plt.plot([i]*len(img), img, 'p', c='b')
-            except:
-                print(img)
-    
+  
     
     
     #10 Implement Reward and Punishment (Page 7 of 44)
@@ -367,6 +392,7 @@ if __name__ == "__main__":
     plt.imshow(spi_off,cmap='gray')
     
     
+    '''
     #Spike delay (train)
     
     plt.figure()
@@ -377,30 +403,28 @@ if __name__ == "__main__":
     plt.figure()
     spi_tri_off = SNN.spike_train(img_off)
     plt.imshow(spi_tri_off,cmap='gray')
+    '''
     
-    
-    
+    '''
     #Raster one - figure 3
     SNN.raster_one(img)
-    
+    '''
     
     
     #RAster 2 - figure 12: Plot of spike image against the delay
     plt.figure()
     
-    plt.plot(spi_on,spi_tri_on,'o')
-    plt.axis([0, 8, 0, 600])
+    
     plt.show
     #plt.eventplot(sp_plot)
+    train = SNN.spike_plot(SNN.spike_train(img_on))
+    SNN.plot_spike_train(train)
     
-    # Provide the title for the spike raster plot
-    plt.title('Spike raster plot')
-        
-    #x axis fo the spike raster plot
-    plt.xlabel('Time')
-        
-    #Y axis label for the spike raster plot
-    plt.ylabel('Pixel/Neuron')
+    plt.title('Spike raster plot') # Provide the title for the spike raster plot
+    plt.xlabel('Time') #x axis fo the spike raster plot
+    plt.ylabel('Pixel/Neuron')  #Y axis label for the spike raster plot
+    
+    
     
     '''   
     # Draw a spike raster plot
