@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from params_1 import params
 #from neuron_2 improt neuron
+import pdb
 
 
 #1 - Create function to replicate figure 1
@@ -234,12 +235,8 @@ class SNN():
         
         
     #9 - New Kernel
-    def new_plot_DOG(sigma1, sigma2):
+    def new_plot_DOG(dim = 5, chanls = 2, nlayers = 30):
        #Fix scale - Problem 
-       
-        dim = 5
-        chanls = 2
-        nlayers = 30
         
         #dim_total = np.zeros((dim,dim))
         #ctotal = np.zeros((dim,dim,chanls))
@@ -299,35 +296,46 @@ class SNN():
     '''
     
     def convolution_3x3(spi_img, ctotal):
-        
+        '''
         if len(spi_img.shape)==2: #1 channel
             spi_img = np.expand_dims(spi_img, axis=2)
-        
-        img_pixel1, img_pixel2,c_img = spi_img.shape
+        '''
+        t,img_pixel1, img_pixel2,chanls =  np.shape(spi_img)  #spi_img.shape (I used np.array to covert it to an array)
         fh, fw, fc, n_layers= ctotal.shape
         
-        #assert(c_img == n_layers) #had to update the dimension of my img to match that of the filter. Then update the use of "n_layers" below
+        assert(chanls == fc) #had to update the dimension of my img to match that of the filter. Then update the use of "n_layers" below
     
         
-        npad_img = np.zeros((img_pixel1, img_pixel2, c_img)) #padded image
-        
-        for n in range(n_layers): #Loop over all layers
-            
-            for i in range(img_pixel1):
-                for j in range(img_pixel2):
+        npad_img = np.zeros((img_pixel1, img_pixel2, n_layers,t)) #padded image
+        for Tm in range(t):
+            for n in range(n_layers): #Loop over all layers
                 
-                    #Run filter across image
-                    for m in range(fc):
-                        for k in range(fh):
-                            for l in range(fw):
-                                if 0 <= ((i+k)-fh < img_pixel1) and 0 <= ((j+l)-fw < img_pixel2):
-                                    npad_img[i][j][n] += spi_img[i + k - fh][j+l-fw][n] * ctotal[k][l][n] #changed npad_img[i][j][m] to npad_img[i][j][n] 
-                            
+                for i in range(img_pixel1):
+                    for j in range(img_pixel2):
+                    
+                        #Run filter across image
+                        for m in range(fc):
+                            for k in range(fh):
+                                for l in range(fw):
+                                    if 0 <= ((i+k)-fh < img_pixel1) and 0 <= ((j+l)-fw < img_pixel2):
+                                        #pdb.set_trace()
+                                        #npad_img[i][j][n] += spi_img[i + k - fh][j+l-fw][n] * ctotal[k][l][n] #changed npad_img[i][j][m] to npad_img[i][j][n] 
+                                        npad_img[i][j][n][Tm] += spi_img[Tm][i + k - fh][j+l-fw][m] * ctotal[k][l][m][n]
         return npad_img
         
         
     
+    def testConv_3x3(spi_img, ctotal):
         
+        convImg = np.convolve(spi_img, ctotal)
+        
+        
+        return convImg
+    
+    
+    def Linhibit():
+        result = 20 ####
+        return result
   
     
     
@@ -417,8 +425,9 @@ if __name__ == "__main__":
     
     plt.show
     #plt.eventplot(sp_plot)
-    train = SNN.spike_plot(SNN.spike_train(img_on))
-    SNN.plot_spike_train(train)
+    spi_train_on = SNN.spike_plot(SNN.spike_train(img_on))
+    spi_train_off = SNN.spike_plot(SNN.spike_train(img_off))
+    SNN.plot_spike_train(spi_train_on)
     
     plt.title('Spike raster plot') # Provide the title for the spike raster plot
     plt.xlabel('Time') #x axis fo the spike raster plot
@@ -441,11 +450,16 @@ if __name__ == "__main__":
     conv_on_center_filter = SNN.new_plot_DOG(1,2)
     conv_off_center_filter = SNN.new_plot_DOG(2,1)
     
+    #create stacked on/off images for each time - should remove any time that has no spikes
+    spi_stacked = [np.stack([on,off], axis=2) for (on,off) in zip(spi_train_on, spi_train_off)]
+    
+    w = SNN.new_plot_DOG(dim = 5, chanls = 2, nlayers = 30)
+    
     #cImg = SNN.convolution_3x3(SNN.spike_train(img), conv_on_center_filter)
-    cImg = SNN.convolution_3x3(SNN.spike_img(spi_on), conv_on_center_filter)
+    cImg = SNN.convolution_3x3(spi_stacked, w)
     
     plt.figure()
-    plt.imshow(cImg)
+    plt.imshow(cImg)  #Will need to work on this
     
     
     
