@@ -10,11 +10,13 @@ Created on Mon Oct 12 19:45:19 2020
 
 import imageio
 import time as T
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt 
 import numpy as np
 from params_1 import params
 #from neuron_2 improt neuron
 import pdb
+
+
 
 
 #1 - Create function to replicate figure 1
@@ -300,6 +302,7 @@ class SNN():
         if len(spi_img.shape)==2: #1 channel
             spi_img = np.expand_dims(spi_img, axis=2)
         '''
+        
         t,img_pixel1, img_pixel2,chanls =  np.shape(spi_img)  #spi_img.shape (I used np.array to covert it to an array)
         fh, fw, fc, n_layers= ctotal.shape
         
@@ -307,6 +310,9 @@ class SNN():
     
         
         npad_img = np.zeros((img_pixel1, img_pixel2, n_layers,t)) #padded image
+        cmpnd_npad_img = np.zeros((img_pixel1, img_pixel2, n_layers,t)) #cumulative padded  image
+        
+        
         for Tm in range(t):
             for n in range(n_layers): #Loop over all layers
                 
@@ -321,9 +327,56 @@ class SNN():
                                         #pdb.set_trace()
                                         #npad_img[i][j][n] += spi_img[i + k - fh][j+l-fw][n] * ctotal[k][l][n] #changed npad_img[i][j][m] to npad_img[i][j][n] 
                                         npad_img[i][j][n][Tm] += spi_img[Tm][i + k - fh][j+l-fw][m] * ctotal[k][l][m][n]
-        return npad_img
+                                        
+                                        #print(i,j,n,Tm)
+                                        
+                         #Separate this below into a function               
+                        if(Tm >= 1):
+                            cmpnd_npad_img[i][j][n][Tm] = cmpnd_npad_img[i][j][n][Tm - 1] +  npad_img[i][j][n][Tm]
+                            #cmpnd_npad_img[4] = cmpnd_npad_img[Tm - 1] +  npad_img[4]
+                            
+                        '''
+                        Test:
+                            sum(cImg[1][0,0,0]) should  = cImg[0][0,0,0,-1]
+                            cImg[0][1,1,1,-1] should = sum(cImg[1][1,1,1])
+                            cImg[1][0,0,0,][0:13].sum() should = cImg[0][0,0,0,12]
+                        
+                        '''
+                                        
+                                    
+        #return npad_img
+        return cmpnd_npad_img, npad_img
+        #return spike_img3D
+    
+    '''
+    def cumSum(spi_img, ctotal):
+        compValue = 1
+        t,img_pixel1, img_pixel2,chanls =  np.shape(spi_img) 
+        
+        for t in range(1, T):
+            
         
         
+        return compValue
+    '''
+   
+    '''
+    def threeDImage(ax, plane, cmap):
+        ax.imshow(plane, cmap=cmap)
+        ax.axis("off")
+    
+        if title:
+           ax.set_title(title)
+        
+
+    (n_plane, n_row, n_col) = data.shape
+    _, (a, b, c) = plt.subplots(ncols=3, figsize=(15, 5))
+
+    threeDImage(a, data[n_plane // 2], title=f'Plane = {n_plane // 2}')
+    threeDImage(b, data[:, n_row // 2, :], title=f'Row = {n_row // 2}')
+    threeDImage(c, data[:, :, n_col // 2], title=f'Column = {n_col // 2}')
+    
+    '''
     
     def testConv_3x3(spi_img, ctotal):
         
@@ -333,9 +386,44 @@ class SNN():
         return convImg
     
     
-    def Linhibit():
-        result = 20 ####
-        return result
+    def Linhibit(spi_img, ctotal):
+        
+        gam = 15 
+        
+        t,img_pixel1, img_pixel2,chanls =  np.shape(spi_img)  #spi_img.shape (I used np.array to covert it to an array)
+        fh, fw, fc, n_layers= ctotal.shape
+        
+        assert(chanls == fc) #had to update the dimension of my img to match that of the filter. Then update the use of "n_layers" below
+    
+        
+        npad_img = np.zeros((img_pixel1, img_pixel2, n_layers,t)) #padded image
+        cmpnd_npad_img = np.zeros((img_pixel1, img_pixel2, n_layers,t)) #cumulative padded  image
+        
+        spike_img3D = np.zeros((img_pixel1, img_pixel2, n_layers))
+        
+        for Tm in range(t):
+            for n in range(n_layers): #Loop over all layers
+                
+                for i in range(img_pixel1):
+                    for j in range(img_pixel2):
+                    
+                        #Run filter across image
+                        for m in range(fc):
+                            for k in range(fh):
+                                for l in range(fw):
+                                    if 0 <= ((i+k)-fh < img_pixel1) and 0 <= ((j+l)-fw < img_pixel2):
+                                        #pdb.set_trace()
+                                        #npad_img[i][j][n] += spi_img[i + k - fh][j+l-fw][n] * ctotal[k][l][n] #changed npad_img[i][j][m] to npad_img[i][j][n] 
+                                        npad_img[i][j][n][Tm] += spi_img[Tm][i + k - fh][j+l-fw][m] * ctotal[k][l][m][n]
+                                        
+                                        if(Tm >= 1):
+                                            cmpnd_npad_img[i][j][n][Tm] = npad_img[i][j][n][Tm - 1] + npad_img[i][j][n][Tm]
+                                        
+                                        #3D spike image
+                                        if ((cmpnd_npad_img[i][j][n][Tm])) > gam:
+                                            spike_img3D[i][j][n] = 1
+                                            
+        return spike_img3D[i][j][n]
   
     
     
@@ -456,11 +544,17 @@ if __name__ == "__main__":
     w = SNN.new_plot_DOG(dim = 5, chanls = 2, nlayers = 30)
     
     #cImg = SNN.convolution_3x3(SNN.spike_train(img), conv_on_center_filter)
+    cImg = []
     cImg = SNN.convolution_3x3(spi_stacked, w)
     
     plt.figure()
-    plt.imshow(cImg)  #Will need to work on this
+    #plt.imshow(cImg[:,:,:])  #Will need to work on this
+    #plt.colorbar()
+    #plt.plot()
+    plt.show(cImg)
     
+    
+    #SNN.threeDImage(cImg )
     
     
     
