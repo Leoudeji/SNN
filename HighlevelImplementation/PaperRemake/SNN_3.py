@@ -297,6 +297,8 @@ class SNN():
         return matriz_convolucionada
     '''
     
+    
+    
     def convolution_3x3(spi_img, ctotal):
         '''
         if len(spi_img.shape)==2: #1 channel
@@ -310,7 +312,7 @@ class SNN():
     
         
         npad_img = np.zeros((img_pixel1, img_pixel2, n_layers,t)) #padded image
-        cmpnd_npad_img = np.zeros((img_pixel1, img_pixel2, n_layers,t)) #cumulative padded  image
+        #cmpnd_npad_img = np.zeros((img_pixel1, img_pixel2, n_layers,t)) #cumulative padded  image
         
         
         for Tm in range(t):
@@ -329,12 +331,13 @@ class SNN():
                                         npad_img[i][j][n][Tm] += spi_img[Tm][i + k - fh][j+l-fw][m] * ctotal[k][l][m][n]
                                         
                                         #print(i,j,n,Tm)
-                                        
+                        '''                
                          #Separate this below into a function               
                         if(Tm >= 1):
                             cmpnd_npad_img[i][j][n][Tm] = cmpnd_npad_img[i][j][n][Tm - 1] +  npad_img[i][j][n][Tm]
                             #cmpnd_npad_img[4] = cmpnd_npad_img[Tm - 1] +  npad_img[4]
-                            
+                        '''
+                        
                         '''
                         Test:
                             sum(cImg[1][0,0,0]) should  = cImg[0][0,0,0,-1]
@@ -344,41 +347,93 @@ class SNN():
                         '''
                                         
                                     
-        #return npad_img
-        return cmpnd_npad_img, npad_img
+        return npad_img
+        #return cmpnd_npad_img, npad_img
         #return spike_img3D
     
-    '''
-    def cumSum(spi_img, ctotal):
-        compValue = 1
-        t,img_pixel1, img_pixel2,chanls =  np.shape(spi_img) 
-        
-        for t in range(1, T):
-            
+    
+    
+    
+    def cumSum(spi_img, ctotal, npad_img):
         
         
-        return compValue
-    '''
+        t,img_pixel1, img_pixel2,chanls =  np.shape(spi_img)  #spi_img.shape (I used np.array to covert it to an array)
+        fh, fw, fc, n_layers= ctotal.shape
+        
+        cmpnd_npad_img = np.zeros((img_pixel1, img_pixel2, n_layers,t)) #cumulative padded  image
+        
+        assert(chanls == fc) #had to update the dimension of my img to match that of the filter. Then update the use of "n_layers" below
+    
+        
+        
+        for Tm in range(t):
+            for n in range(n_layers): #Loop over all layers
+                
+                for i in range(img_pixel1):
+                    for j in range(img_pixel2):
+                    
+                        #Separate this below into a function               
+                        if(Tm >= 1):
+                            cmpnd_npad_img[i][j][n][Tm] = cmpnd_npad_img[i][j][n][Tm - 1] +  npad_img[i][j][n][Tm]
+                        
+                        
+                        
+                        '''
+                        Test:
+                            sum(cImg[1][0,0,0]) should  = cImg[0][0,0,0,-1]
+                            cImg[0][1,1,1,-1] should = sum(cImg[1][1,1,1])
+                            cImg[1][0,0,0,][0:13].sum() should = cImg[0][0,0,0,12]
+                        
+                        '''
+        
+        
+        return cmpnd_npad_img
+    
+    
+    
+    
+    def threeDImage(cmpnd_npad_img):
+        #I did two things in one shot here
+        #First, this was designed to append the image into a 2D image, 
+        #then we make a spike image from the appended image
+        
+        gam = 15
+        
+        inputImg = cmpnd_npad_img
+        
+        img_pixel1, img_pixel2, n_layers,t = np.shape(cmpnd_npad_img)
+        
+        
+        #image = np.zeros((img_pixel1, img_pixel2)) 
+        spike_3Dimg = np.zeros((img_pixel1, img_pixel2)) 
+           
+         
+        for Tm in range(t):
+            for n in range(n_layers): #Loop over all layers
+                
+                for i in range(img_pixel1):
+                    for j in range(img_pixel2):
+                        
+                        
+                        if ((inputImg[i][j][n][Tm])) > gam:
+                        
+                            #image[i][j] += inputImg[i][j][n][Tm]
+                            spike_3Dimg[i][j] += 1
+            #print(Tm)
+             
+            #To find the max spike value use: max(fImage.flatten())            
+                        
+                        
+    
+        return spike_3Dimg
+    
+    
+    
    
-    '''
-    def threeDImage(ax, plane, cmap):
-        ax.imshow(plane, cmap=cmap)
-        ax.axis("off")
     
-        if title:
-           ax.set_title(title)
-        
-
-    (n_plane, n_row, n_col) = data.shape
-    _, (a, b, c) = plt.subplots(ncols=3, figsize=(15, 5))
-
-    threeDImage(a, data[n_plane // 2], title=f'Plane = {n_plane // 2}')
-    threeDImage(b, data[:, n_row // 2, :], title=f'Row = {n_row // 2}')
-    threeDImage(c, data[:, :, n_col // 2], title=f'Column = {n_col // 2}')
     
-    '''
-    
-    def testConv_3x3(spi_img, ctotal):
+    #Cov 3x3 using external libraries
+    def OptConv_3x3(spi_img, ctotal):
         
         convImg = np.convolve(spi_img, ctotal)
         
@@ -424,6 +479,10 @@ class SNN():
                                             spike_img3D[i][j][n] = 1
                                             
         return spike_img3D[i][j][n]
+    
+    
+    
+    
   
     
     
@@ -547,14 +606,29 @@ if __name__ == "__main__":
     cImg = []
     cImg = SNN.convolution_3x3(spi_stacked, w)
     
+    
+    #Calculate cumulative sum after 3D convoltuion
+    cumSum = SNN.cumSum(spi_stacked, w, cImg)
+    
+    
+    
+    #Transform cumSum into a 2D image
+    fImage =  SNN.threeDImage(cumSum)
+    
+    #Plot the final iamge
+    plt.figure()
+    plt.imshow(fImage)
+    
+    
+    '''
     plt.figure()
     #plt.imshow(cImg[:,:,:])  #Will need to work on this
     #plt.colorbar()
     #plt.plot()
     plt.show(cImg)
+    '''
     
-    
-    #SNN.threeDImage(cImg )
+   
     
     
     
