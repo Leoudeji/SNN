@@ -4,6 +4,7 @@
 Created on Mon Oct 12 19:45:19 2020
 
 Link to Study: https://arxiv.org/pdf/1903.12272.pdf
+Another study: https://arxiv.org/pdf/1611.01421.pdf
 
 @author: ludej
 Advisor: Prof. Martin Margala
