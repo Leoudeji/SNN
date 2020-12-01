@@ -3,24 +3,35 @@
 """
 Created on Mon Oct 12 19:45:19 2020
 
+Link to Study: https://arxiv.org/pdf/1903.12272.pdf
+
 @author: ludej
+Advisor: Prof. Martin Margala
+
+
 """
 
-#SNN implementation
+#Research Title: FPGA Implementation of Spiking Neural Networks
+#Dataset: MNIST daatset
 
+
+#import necessary libraries
 import imageio
 import time as T
 import matplotlib.pyplot as plt 
 import numpy as np
 from params_1 import params
 #from neuron_2 improt neuron
-import pdb
+import pdb # used to debug program
+from scipy import signal #Used to verify 3d convolution (test_Conv_3x3)
 
 
 
-
-#1 - Create function to replicate figure 1
+#Create a class to contain all the methods in our design
 class SNN():  
+    
+    #1 - Create function to replicate figure 1
+    
     
     #2 - Create Function for Input Neuron versus spike time (Figure 3) (How did they use 100 input neurons? )
     
@@ -29,7 +40,6 @@ class SNN():
     
     #3 - Set random weights from normal distribution
     #draw samples from distribution
-    
     def weights():
         mu, sigma = 0.5, 0.05 # mean and standard deviation - values come from page 4 of 44
         #s = np.random.normal(mu, sigma, 784)
@@ -55,23 +65,25 @@ class SNN():
         return s
     
     
-    #4 - Convolution
-    #Get code to perform convolution operation on an input image
-    #We use same-mode convolution; so the shape of the ouput and the input image remains the same (page 5 of 44)
-    #How do we incorporate time and thresholding into formula as in page 5??
-
+    
+    #4 - Convolution (2 dimensional)
+    #Perform convolution operation on an input image
+    #We use same-mode convolution; so the shape of the output and the input image remains the same (page 5 of 44, Figure 5)
+    #How do we incorporate time and thresholding into formula as in page 5?? (spike_img and spike_train methods below does this)
     def convolution(img, total):
-        img_pixel1, img_pixel2 = img.shape
-        fh, fw = total.shape
+        img_pixel1, img_pixel2 = img.shape #get dimension of input image
+        fh, fw = total.shape #get dimension of 2d filter
         
         pad_img = np.zeros((img_pixel1, img_pixel2)) #padded image
         
-        for i in range(img_pixel1):
-            for j in range(img_pixel2):
+        for i in range(img_pixel1): #Loop over image width
+            for j in range(img_pixel2): #Loop over image height
                 
                 #Run filter across image
-                for k in range(fh):
-                    for l in range(fw):
+                for k in range(fh): #Loop over filter width
+                    for l in range(fw): #Loop over filter height
+                        
+                        #The 2 lines below perform convolution
                         if 0 <= ((i+k)-fh < img_pixel1) and 0 <= ((j+l)-fw < img_pixel2):
                             pad_img[i][j] += img[i + k - fh][j+l-fw] * total[k][l]
                             
@@ -83,30 +95,30 @@ class SNN():
     #5 - Convert MNIST images to spikes, using Difference of Gaussian Filter (DoG filter) (pg.9 of 44)
     # DoG Filter imitates the retinal receptive field of the human eye
     
-    #Formula is provides on page - Already done by Sanjay
+    #Formula is provided on Page 9
     #(ON center spike is produced if pixel value increases and OFF center spike is produced if pixel value decrease - page 9 of 44)
     #notice that the value of sig1 and sig2 changes depending on whether it's ON or OFF center
-    
     def plot_DOG(sigma1, sigma2):
-       #Fix scale - Problem 
+        #Fix scale - Problem 
        
-        dim = 7
+        dim = 7 #2D filter dimension
         
-        total = np.zeros((dim,dim))
+        total = np.zeros((dim,dim)) #create/declare a 5*5 matrix of zeros
         
-        for i in range(dim):   #Leo - 5 x 5 filter size comes from page 5 of 44
+        for i in range(dim):   #Leo - 5 x 5 filter size comes from page 10 and 17, of 44
             for j in range(dim):
                 
+                #Equation of filter on Pg 9of 44 is lengthy. We break it in two below (frac1 and frac2)
                 frac1 = 1/(2 * np.pi * sigma1**2)
                 frac2 = 1/(2 * np.pi * sigma2**2)
                 
                 expp = ((i-3)**2)  + ((j-3)**2)
                 
                 #if((-3<=i and i>=3) and (-3<=j and j>=3) )
-                total[i][j] = (frac1 * np.exp(-expp/(2*sigma1**2))) - (frac2 * np.exp(-expp/(2*sigma2**2)))
+                total[i][j] = (frac1 * np.exp(-expp/(2*sigma1**2))) - (frac2 * np.exp(-expp/(2*sigma2**2))) #Full implementation of Equation 'K' in Page 9 of 44
                 
                 
-                #Added lines
+        #Added lines normalizes the filter before using it for convolution
         total = total - np.mean(total)
         total = total / np.max(np.abs(total))
                 
@@ -114,6 +126,7 @@ class SNN():
         return total
     
     
+    #Function below plots and ON and OFF filters
     def plot_on_off_filter(on_center_filter, off_center_filter):
         plt.figure()
         plt.colorbar(plt.pcolormesh(on_center_filter))
@@ -122,6 +135,7 @@ class SNN():
         plt.figure()
         plt.colorbar(plt.pcolormesh(off_center_filter))
         
+      
         
     #Multiply weights and images
     def Weights_images(img,weight):
@@ -136,23 +150,24 @@ class SNN():
     
     #6 - Implement the Spiking signal in pg 11 of 44 formula and make the raster plot of it against pixels (figure 12)
     #Keep the bins spaced at 10bins (10msecond) (gap = 2millisecond)
-    
     def spike_img(img):
         G = params.GAMMA
-        pixel_H, pixel_W = img.shape
-        spike_img = np.zeros((img.shape))
+        pixel_H, pixel_W = img.shape #get dimension of input image
+        spike_img = np.zeros((img.shape)) #declare a 2D matrix of zeros, of thesame shape as input image
         
-        for i in range(pixel_H):
-            for j in range(pixel_W):
-                if ((img[i][j])) > G:
+        for i in range(pixel_H): #Loop over image height
+            for j in range(pixel_W): #Loop over image width
+                if ((img[i][j])) > G: #check if particular pixel has a value greater than threshold value of 50
                     #spike_img[i][j] = img[i][j]
-                    spike_img[i][j] = 1
+                    spike_img[i][j] = 1 #assign a value of 1 to spike_img matrix at position i,j if value is greater than 50
                   
         
         return spike_img
     
     
     
+    #Converts our image into spike trains (delays - in milliseconds)
+    #Delay equation (tau) is in Pg11/44
     def spike_train(img):
         #G = params.GAMMA 
         
@@ -169,6 +184,8 @@ class SNN():
         
         return delay
     
+    
+    #Takes result of the spike_train() function and create a delay list
     def spike_plot(delay):
         yp = np.ceil(delay)
         delay_list = []
@@ -192,7 +209,9 @@ class SNN():
             
         return delay_list
     
-        
+    
+    
+    #Plot spike train (Figure 12 - Page 11/44)    
     def plot_spike_train(img_list):
         plt.figure()
         for i in range(len(img_list)):
@@ -236,7 +255,7 @@ class SNN():
                   
         
         
-    #9 - New Kernel
+    #9 - Function defines New Kernel/Filter in Figure 13 (Page 12/44)
     def new_plot_DOG(dim = 5, chanls = 2, nlayers = 30):
        #Fix scale - Problem 
         
@@ -298,7 +317,8 @@ class SNN():
     '''
     
     
-    
+    #Function performs 3D Convolution on stacked spiking image of ON and OFF filter (Pg 12/44)
+    #ctotal represents the kernel
     def convolution_3x3(spi_img, ctotal):
         '''
         if len(spi_img.shape)==2: #1 channel
@@ -353,7 +373,8 @@ class SNN():
     
     
     
-    
+    #Function loops through the result of convolution_3x3() function to 
+    #Calculate cumulative sum of image values after 3D convolution
     def cumSum(spi_img, ctotal, npad_img):
         
         
@@ -391,7 +412,7 @@ class SNN():
     
     
     
-    
+    #Converts the results from cumSum() function into a 2D image for plotting (Figure 14 - Page 13/44)
     def threeDImage(cmpnd_npad_img):
         #I did two things in one shot here
         #First, this was designed to append the image into a 2D image, 
@@ -405,20 +426,24 @@ class SNN():
         
         
         #image = np.zeros((img_pixel1, img_pixel2)) 
-        spike_3Dimg = np.zeros((img_pixel1, img_pixel2)) 
+        spike_3Dimg = np.zeros((img_pixel1, img_pixel2)) #add t
+        #spike_3Dimg = np.zeros((n_layers, t))
+        
+        #for every pixel the max should be 30
            
          
-        for Tm in range(t):
-            for n in range(n_layers): #Loop over all layers
+
+        for i in range(img_pixel1):
+            for j in range(img_pixel2):
+                for Tm in range(t):
+                    for n in range(n_layers): #Loop over all layers
                 
-                for i in range(img_pixel1):
-                    for j in range(img_pixel2):
-                        
                         
                         if ((inputImg[i][j][n][Tm])) > gam:
                         
                             #image[i][j] += inputImg[i][j][n][Tm]
-                            spike_3Dimg[i][j] += 1
+                            #spike_3Dimg[i][j] += 1
+                            spike_3Dimg[i][j] = inputImg[i][j][n][Tm]
             #print(Tm)
              
             #To find the max spike value use: max(fImage.flatten())            
@@ -428,33 +453,84 @@ class SNN():
         return spike_3Dimg
     
     
-    
    
     
     
-    #Cov 3x3 using external libraries
-    def OptConv_3x3(spi_img, ctotal):
+    #Perform 3D Covolution using external libraries
+    #This function is used to test the correctness of our original algorithm
+    def test_Conv_3x3(spi_img, ctotal):
         
-        convImg = np.convolve(spi_img, ctotal)
+        nspi_img = np.transpose(spi_img,axes=[1,2,3,0])
+        nctotal = np.transpose(ctotal,axes=[0,1,2,3])
+        
+        #nspi_img = np.transpose(spi_img,axes=[0,3,1,2])
+        #nctotal = np.transpose(ctotal,axes=[3,2,0,1]) 
+        
+        #convImg = signal.fftconvolve(nspi_img, nctotal, mode='same', axes=[0,1,2])
+        #convImg = signal.convolve(nspi_img, nctotal, mode='same', axes=[0,1,2])
+        convImg = signal.convolve(nspi_img, nctotal, mode='same')
+        
+        #convImg = signal.fftconvolve(np.transpose(spi_img,axes=[1,2,3,0]), np.transpose(ctotal,axes=[0,1,2,3]), mode='valid')
+        #convImg = signal.convolve(np.transpose(spi_img,axes=[1,2,3,0]), np.transpose(ctotal,axes=[0,1,2,3]), mode='full')
+        #Valid mode gave an error
+        #full mode gives a result with the wrong dimension
+        
+        #convImg = signal.fftconvolve(np.transpose(spi_img,axes=[1,2,3,0]).shape, np.transpose(ctotal,axes=[0,1,2,3]).shape, mode='valid')
+        
+        #convImg = signal.fftconvolve(spi_img, ctotal, mode='same')
+        #convImg = signal.fftconvolve(spi_img, ctotal, mode='valid', axis =)
+        
+        #I need to change the alignment (axis) to perform convolution.
+        #I might need to use np.transpose
+        #Depending on which works better you can use the faster one for the program
+        
         
         
         return convImg
     
     
-    def Linhibit(spi_img, ctotal):
+    
+    #Converts the results from test_Conv_3x3() function into a 2D image for plotting
+    def test3DCSum(convImg):
+      
+
+        gam = 15
         
-        gam = 15 
+        inputImg = convImg
         
+        img_pixel1, img_pixel2, n_layers,t = np.shape(convImg)
+        
+        
+        #image = np.zeros((img_pixel1, img_pixel2)) 
+        test_csum  = np.zeros((img_pixel1, img_pixel2)) #add t
+        #spike_3Dimg = np.zeros((n_layers, t))
+        
+        #for every pixel the max should be 30
+           
+         
+
+        for i in range(img_pixel1):
+            for j in range(img_pixel2):
+                for Tm in range(t):
+                    for n in range(n_layers): #Loop over all layers
+                
+                        
+                        if ((inputImg[i][j][n][Tm])) > gam:
+                        
+                            #image[i][j] += inputImg[i][j][n][Tm]
+                            #spike_3Dimg[i][j] += 1
+                           test_csum[i][j] = inputImg[i][j][n][Tm]     
+                           
+        '''
         t,img_pixel1, img_pixel2,chanls =  np.shape(spi_img)  #spi_img.shape (I used np.array to covert it to an array)
         fh, fw, fc, n_layers= ctotal.shape
+        
+        test_csum = np.zeros((img_pixel1, img_pixel2, n_layers,t)) #cumulative padded  image
+        
         
         assert(chanls == fc) #had to update the dimension of my img to match that of the filter. Then update the use of "n_layers" below
     
         
-        npad_img = np.zeros((img_pixel1, img_pixel2, n_layers,t)) #padded image
-        cmpnd_npad_img = np.zeros((img_pixel1, img_pixel2, n_layers,t)) #cumulative padded  image
-        
-        spike_img3D = np.zeros((img_pixel1, img_pixel2, n_layers))
         
         for Tm in range(t):
             for n in range(n_layers): #Loop over all layers
@@ -462,28 +538,143 @@ class SNN():
                 for i in range(img_pixel1):
                     for j in range(img_pixel2):
                     
-                        #Run filter across image
-                        for m in range(fc):
-                            for k in range(fh):
-                                for l in range(fw):
-                                    if 0 <= ((i+k)-fh < img_pixel1) and 0 <= ((j+l)-fw < img_pixel2):
-                                        #pdb.set_trace()
-                                        #npad_img[i][j][n] += spi_img[i + k - fh][j+l-fw][n] * ctotal[k][l][n] #changed npad_img[i][j][m] to npad_img[i][j][n] 
-                                        npad_img[i][j][n][Tm] += spi_img[Tm][i + k - fh][j+l-fw][m] * ctotal[k][l][m][n]
-                                        
-                                        if(Tm >= 1):
-                                            cmpnd_npad_img[i][j][n][Tm] = npad_img[i][j][n][Tm - 1] + npad_img[i][j][n][Tm]
-                                        
-                                        #3D spike image
-                                        if ((cmpnd_npad_img[i][j][n][Tm])) > gam:
-                                            spike_img3D[i][j][n] = 1
+                        #Separate this below into a function               
+                        if(Tm >= 1):
+                            test_csum[i][j][n][Tm] = test_csum[i][j][n][Tm - 1] +  convImg[i][j][n][Tm]
+        '''
+        
+        
+        return test_csum 
+    
+    
+    
+    #This function implements Lateral inhibition (Figure 15 - Page 13/44)
+    def Linhibit(cmpnd_npad_img):
+        
+        gam = 15
+        
+        inputImg = cmpnd_npad_img
+        
+        img_pixel1, img_pixel2, n_layers,t = np.shape(cmpnd_npad_img)
+        
+        
+        
+        LIimg3D = np.zeros((img_pixel1, img_pixel2)) #add t
+        findMax = np.zeros((img_pixel1, img_pixel2))
+        
+        
+        #for every pixel the max should be 30
+         
+                
+        for i in range(img_pixel1):
+            for j in range(img_pixel2):
+                        
+                for Tm in range(t):
+                    for n in range(n_layers): #Loop over all layers
+                
+                        findMax = max(inputImg[i,j,:,t-1])
+                        if ((findMax)) > gam:
+                            
+                            #if ((inputImg[i][j][n][Tm])) > gam:
+                            
+                           
+                                LIimg3D[i][j] = 1
+                            
+                                #findMax = max(inputImg[i][j][n][Tm])
+                                #len(cumSum[1,1,:,1])
+                                #max(cumSum[2,2,:,19])
+                                
+                                '''
+                                #Test Algorithm
+                                
+                                inputImg = cumSum
+                                i, j, n,Tm = np.shape(cumSum)
+                                
+                                for i in range (n):
+                                    findMax = max(inputImg[2,2,:,19])
+                                
+                                '''
+            #print(Tm)
+        
                                             
-        return spike_img3D[i][j][n]
+        return LIimg3D
     
     
     
     
-  
+    #Functons to Implement STDP competition
+    
+    def STDP_Kernel(u,v):
+        
+        SK= np.random.normal(0, 0, size=(u,v)) 
+        
+        
+        return SK
+    
+    
+    
+    #Function creates results in Figure 16 (Page 14/44) - Incomplete
+    def STDP_Comp(cmpnd_npad_img):
+        
+        gam = 15
+        
+       
+        fh, fw = SK.shape
+        inputImg = cmpnd_npad_img
+        
+        img_pixel1, img_pixel2, n_layers,t = np.shape(cmpnd_npad_img)
+            
+        stdpCompResult = np.zeros((img_pixel1, img_pixel2)) #padded image
+            
+        
+        #LIimg3D = np.zeros((img_pixel1, img_pixel2)) #add t
+        findMax = np.zeros((img_pixel1, img_pixel2))
+        
+        
+        #for every pixel the max should be 30
+         
+                
+        #The difference from lateral inhibition is 'n' in findMax and position of loop over time
+                        
+                
+        for n in range(n_layers): #Loop over all layers
+                   
+            for Tm in range(t):
+                        
+                for i in range(img_pixel1):
+                    for j in range(img_pixel2):
+                
+                        findMax = max(inputImg[i,j,n,t-1])
+                        if ((findMax)) > gam:
+                            
+                            #if ((inputImg[i][j][n][Tm])) > gam:
+                            
+                           
+                               stdpCompResult = 1
+                               
+                               
+                               #Second stage of Spiking competition
+                               
+        '''
+        img_pixel1, img_pixel2 = LIimg3D.shape
+        fh, fw = SK.shape
+            
+        stdpCompResult = np.zeros((img_pixel1, img_pixel2)) #padded image
+            
+        for i in range(img_pixel1):
+                for j in range(img_pixel2):
+                    
+                    #Run filter across image
+                    for k in range(fh):
+                        for l in range(fw):
+                            if 0 <= ((i+k)-fh < img_pixel1) and 0 <= ((j+l)-fw < img_pixel2):
+                                stdpCompResult[i][j] += img[i + k - fh][j+l-fw] * SK[k][l]
+        '''                    
+                                            
+        
+        
+        return stdpCompResult
+   
     
     
     #10 Implement Reward and Punishment (Page 7 of 44)
@@ -505,16 +696,17 @@ if __name__ == "__main__":
     print ("Start time:", start)
     
     img = imageio.imread("2.png")
-    print(img)
+    #print(img)
     
     SNN.weights()
     d=SNN.weights()
     
-   
-    on_center_filter = SNN.plot_DOG(1,2)
-    off_center_filter = SNN.plot_DOG(2,1)
     
-    SNN.plot_on_off_filter(on_center_filter, off_center_filter)
+    #The next three lines of code implements the DoG Filter on Page 9, and Figure.8 on Page 10
+    on_center_filter = SNN.plot_DOG(1,2) 
+    off_center_filter = SNN.plot_DOG(2,1)
+    SNN.plot_on_off_filter(on_center_filter, off_center_filter) #Plots the combined ON and OFF filter in Figure 8
+    
     
     
     #Convolve with the on and off filter
@@ -615,9 +807,50 @@ if __name__ == "__main__":
     #Transform cumSum into a 2D image
     fImage =  SNN.threeDImage(cumSum)
     
-    #Plot the final iamge
+    #Plot the final image
     plt.figure()
     plt.imshow(fImage)
+    #plt.imshow(plt.colorbar(fImage))
+    plt.figure()
+    plt.colorbar(plt.pcolormesh(fImage))
+    #plt.colorbar(fImage)
+    
+    
+    
+    #Test 3D convolvution
+    TestCImg = SNN.test_Conv_3x3(spi_stacked, w)
+    TestCSUm = SNN.test3DCSum(TestCImg)
+    plt.figure()
+    plt.imshow(TestCSUm)
+    plt.figure()
+    plt.colorbar(plt.pcolormesh(TestCSUm))
+    
+    
+    
+    #Image with Lateral Inhibition (3D)
+    LIimage = SNN.Linhibit(cumSum)
+    plt.figure()
+    plt.imshow(LIimage)
+    plt.figure()
+    plt.colorbar(plt.pcolormesh(LIimage))
+    
+    
+    
+    #Apply Lateral inhibition to Test 3D convolvution image
+    TestLIimage = SNN.Linhibit(TestCImg)
+    plt.figure()
+    plt.imshow(TestLIimage)
+    plt.figure()
+    plt.colorbar(plt.pcolormesh(TestLIimage))
+    
+    
+    #STDP Competition
+    SK = SNN.STDP_Kernel(11,11)
+    
+    STDP_CompImg = SNN.STDP_Comp(cumSum)
+    plt.figure()
+    plt.imshow(STDP_CompImg)
+    #plt.colorbar(plt.pcolormesh(LIimage))
     
     
     '''
