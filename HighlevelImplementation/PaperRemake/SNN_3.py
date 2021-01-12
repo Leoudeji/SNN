@@ -5,6 +5,7 @@ Created on Mon Oct 12 19:45:19 2020
 
 Link to Study: https://arxiv.org/pdf/1903.12272.pdf
 Another study: https://arxiv.org/pdf/1611.01421.pdf
+Gitrepo to parent paper: https://github.com/ruthvik92/SpykeFlow/blob/master/spykeflow/network.py
 
 @author: ludej
 Advisor: Prof. Martin Margala
@@ -26,6 +27,9 @@ from params_1 import params
 import pdb # used to debug program
 from scipy import signal #Used to verify 3d convolution (test_Conv_3x3)
 
+
+def f():
+    print("Hello2");
 
 
 #Create a class to contain all the methods in our design
@@ -331,25 +335,38 @@ class SNN():
         
         assert(chanls == fc) #had to update the dimension of my img to match that of the filter. Then update the use of "n_layers" below
     
+        hgh = img_pixel1-fh+1
+        wdth = img_pixel2-fw+1
         
-        npad_img = np.zeros((img_pixel1, img_pixel2, n_layers,t)) #padded image
+        #npad_img = np.zeros((img_pixel1, img_pixel2, n_layers,t)) #padded image
+        npad_img = np.zeros((hgh, wdth, n_layers,t)) #padded image
         #cmpnd_npad_img = np.zeros((img_pixel1, img_pixel2, n_layers,t)) #cumulative padded  image
         
         
         for Tm in range(t):
             for n in range(n_layers): #Loop over all layers
-                
+                '''
                 for i in range(img_pixel1):
                     for j in range(img_pixel2):
+                '''
+                
+                for i in range(hgh):
+                    for j in range(wdth):
                     
                         #Run filter across image
                         for m in range(fc):
                             for k in range(fh):
                                 for l in range(fw):
-                                    if 0 <= ((i+k)-fh < img_pixel1) and 0 <= ((j+l)-fw < img_pixel2):
+                                    #if 0 <= ((i+k)-fh < img_pixel1) and 0 <= ((j+l)-fw < img_pixel2):
+                                    if (i+k) >= 0 and (i+k) <= img_pixel1 and (j+l) >= 0 and (j+l) <= img_pixel2:
                                         #pdb.set_trace()
                                         #npad_img[i][j][n] += spi_img[i + k - fh][j+l-fw][n] * ctotal[k][l][n] #changed npad_img[i][j][m] to npad_img[i][j][n] 
-                                        npad_img[i][j][n][Tm] += spi_img[Tm][i + k - fh][j+l-fw][m] * ctotal[k][l][m][n]
+                                        
+                                        #npad_img[i][j][n][Tm] += spi_img[Tm][i + k - fh][j+l-fw][m] * ctotal[k][l][m][n]  #Previous
+                                        
+                                        npad_img[i][j][n][Tm] += spi_img[Tm][i + k][j+l][m] * ctotal[k][l][m][n]
+                                        
+                                        #npad_img[i][j][n][Tm] += spi_img[Tm][(i - k)][(j-l)][m] * ctotal[k][l][m][n]
                                         
                                         #print(i,j,n,Tm)
                         '''                
@@ -374,6 +391,7 @@ class SNN():
     
     
     
+    
     #Function loops through the result of convolution_3x3() function to 
     #Calculate cumulative sum of image values after 3D convolution
     def cumSum(spi_img, ctotal, npad_img):
@@ -382,7 +400,12 @@ class SNN():
         t,img_pixel1, img_pixel2,chanls =  np.shape(spi_img)  #spi_img.shape (I used np.array to covert it to an array)
         fh, fw, fc, n_layers= ctotal.shape
         
-        cmpnd_npad_img = np.zeros((img_pixel1, img_pixel2, n_layers,t)) #cumulative padded  image
+        hgh = img_pixel1-fh+1
+        wdth = img_pixel2-fw+1
+        
+        cmpnd_npad_img = np.zeros((hgh,wdth, n_layers,t)) #cumulative padded  image
+        
+        #cmpnd_npad_img = np.zeros((img_pixel1, img_pixel2, n_layers,t)) #cumulative padded  image
         
         assert(chanls == fc) #had to update the dimension of my img to match that of the filter. Then update the use of "n_layers" below
     
@@ -391,8 +414,13 @@ class SNN():
         for Tm in range(t):
             for n in range(n_layers): #Loop over all layers
                 
+                '''
                 for i in range(img_pixel1):
                     for j in range(img_pixel2):
+                '''
+                        
+                for i in range(hgh):
+                    for j in range(wdth):
                     
                         #Separate this below into a function               
                         if(Tm >= 1):
@@ -410,6 +438,8 @@ class SNN():
         
         
         return cmpnd_npad_img
+    
+    
     
     
     
@@ -461,15 +491,34 @@ class SNN():
     #This function is used to test the correctness of our original algorithm
     def test_Conv_3x3(spi_img, ctotal):
         
+        sa,sb,sc,sd = np.transpose(spi_img,axes=[1,2,3,0]).shape
+        ca,cb,cc,cd = np.transpose(ctotal,axes=[0,1,2,3]).shape
+        
+        #nspi_img = np.asarray(np.transpose(spi_img,axes=[1,2,3,0]))
+        #nctotal = np.asarray(np.transpose(ctotal,axes=[0,1,2,3]))
         nspi_img = np.transpose(spi_img,axes=[1,2,3,0])
         nctotal = np.transpose(ctotal,axes=[0,1,2,3])
+        convImg = np.zeros((24,24,30,20))
         
         #nspi_img = np.transpose(spi_img,axes=[0,3,1,2])
         #nctotal = np.transpose(ctotal,axes=[3,2,0,1]) 
         
         #convImg = signal.fftconvolve(nspi_img, nctotal, mode='same', axes=[0,1,2])
         #convImg = signal.convolve(nspi_img, nctotal, mode='same', axes=[0,1,2])
-        convImg = signal.convolve(nspi_img, nctotal, mode='same')
+        
+        
+        
+        #convImg = signal.convolve(nspi_img, nctotal, mode='same')  #The only one that seems to work ok
+        #convImg = signal.convolve(nspi_img, nctotal, mode='valid')
+        
+        
+        for a in range(sd):   #Loop for all time
+            for b in range(cd):   #Loop for all layer
+                convImg[:,:,b,a] = signal.convolve(nspi_img[:,:,:,a], nctotal[::-1,::-1,::-1,b], mode='valid', method='auto').squeeze()
+                #convImg[:,:,cd,sd] = signal.convolve(nspi_img[:,:,:,sd], nctotal[::-1,::-1,::-1,cd], mode='same')
+                #convImg = signal.fftconvolve(nspi_img[:,:,:,a], nctotal[::-1,::-1,::-1,b], mode='valid')
+                #convImg = signal.convolve(nspi_img, nctotal, mode='valid') 
+        
         
         #convImg = signal.fftconvolve(np.transpose(spi_img,axes=[1,2,3,0]), np.transpose(ctotal,axes=[0,1,2,3]), mode='valid')
         #convImg = signal.convolve(np.transpose(spi_img,axes=[1,2,3,0]), np.transpose(ctotal,axes=[0,1,2,3]), mode='full')
@@ -488,6 +537,24 @@ class SNN():
         
         
         return convImg
+    
+    
+    
+    '''
+    def tstfunction():
+        sp = np.random.uniform(size=(28,28,2,20))
+        tp = np.random.uniform(size=(5,5,2,30))
+        up = np.zeros(shape=(28,28,30,20))
+        
+        for a in range(20):
+            for b in range(30):
+                #up[:,:,a,b] = np.convolve(sp[:,:,:,a], tp[:,:,:,b], mode='valid').squeeze()
+                #up[:,:,a,b] = np.convolve(sp[::-1,::-1,::-1,a], tp[::-1,::-1,::-1,b], mode='valid').squeeze()
+                up[:,:,a,b] = np.convolve(sp[:,:,:,a], tp[::-1,::-1,::-1,b], mode='valid').squeeze()
+        
+        
+        return up
+    '''
     
     
     
@@ -546,6 +613,8 @@ class SNN():
         
         
         return test_csum 
+    
+    
     
     
     
@@ -614,13 +683,14 @@ class SNN():
     
     
     
+    
     #Function creates results in Figure 16 (Page 14/44) - Incomplete
     def STDP_Comp(cmpnd_npad_img):
         
         gam = 15
         
        
-        fh, fw = SK.shape
+        #fh, fw = SK.shape
         inputImg = cmpnd_npad_img
         
         img_pixel1, img_pixel2, n_layers,t = np.shape(cmpnd_npad_img)
@@ -630,6 +700,7 @@ class SNN():
         
         #LIimg3D = np.zeros((img_pixel1, img_pixel2)) #add t
         findMax = np.zeros((img_pixel1, img_pixel2))
+        neuron = np.zeros((img_pixel1, img_pixel2, n_layers,t))
         
         
         #for every pixel the max should be 30
@@ -637,7 +708,7 @@ class SNN():
                 
         #The difference from lateral inhibition is 'n' in findMax and position of loop over time
                         
-                
+               
         for n in range(n_layers): #Loop over all layers
                    
             for Tm in range(t):
@@ -645,16 +716,18 @@ class SNN():
                 for i in range(img_pixel1):
                     for j in range(img_pixel2):
                 
-                        findMax = max(inputImg[i,j,n,t-1])
+                        findMax = max(inputImg[:,:,n_layers,t-1])
                         if ((findMax)) > gam:
                             
                             #if ((inputImg[i][j][n][Tm])) > gam:
                             
-                           
-                               stdpCompResult = 1
+                            neuron = inputImg[i,j,n,Tm]
+                            stdpCompResult = 1
                                
                                
-                               #Second stage of Spiking competition
+        #Second stage of Spiking competition - sort neurons and apply (+ or - 5 limit filters)
+        
+        
                                
         '''
         img_pixel1, img_pixel2 = LIimg3D.shape
@@ -688,9 +761,15 @@ class SNN():
     
     
     
+    #12 Max Pooling
+    
+    
+    
+    
 
 
 if __name__ == "__main__":
+#def run():
     
     start = T.time()*1000 #Global time - time() function returns time in seconds
     
@@ -820,11 +899,19 @@ if __name__ == "__main__":
     
     #Test 3D convolvution
     TestCImg = SNN.test_Conv_3x3(spi_stacked, w)
-    TestCSUm = SNN.test3DCSum(TestCImg)
+    #TestCSUm = SNN.test3DCSum(TestCImg)  #The problem was with this functions
+    #testshow = SNN.test3DCSum(TestCImg)
+    cumsumtst = SNN.cumSum(spi_stacked, w, TestCImg)
+    testshow = SNN.threeDImage(cumsumtst)
+    
+    '''
     plt.figure()
     plt.imshow(TestCSUm)
     plt.figure()
     plt.colorbar(plt.pcolormesh(TestCSUm))
+    '''
+    plt.figure()
+    plt.imshow(testshow)
     
     
     
@@ -838,7 +925,8 @@ if __name__ == "__main__":
     
     
     #Apply Lateral inhibition to Test 3D convolvution image
-    TestLIimage = SNN.Linhibit(TestCImg)
+    #TestLIimage = SNN.Linhibit(TestCImg)
+    TestLIimage = SNN.Linhibit(cumsumtst)
     plt.figure()
     plt.imshow(TestLIimage)
     plt.figure()
@@ -849,8 +937,8 @@ if __name__ == "__main__":
     SK = SNN.STDP_Kernel(11,11)
     
     STDP_CompImg = SNN.STDP_Comp(cumSum)
-    plt.figure()
-    plt.imshow(STDP_CompImg)
+    #plt.figure()
+    #plt.imshow(STDP_CompImg)
     #plt.colorbar(plt.pcolormesh(LIimage))
     
     
