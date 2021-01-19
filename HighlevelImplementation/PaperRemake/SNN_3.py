@@ -689,7 +689,8 @@ class SNN():
         
         gam = 15
         
-       
+        n_neuron = {};
+        
         #fh, fw = SK.shape
         inputImg = cmpnd_npad_img
         
@@ -715,6 +716,7 @@ class SNN():
                         
                 for i in range(img_pixel1):
                     for j in range(img_pixel2):
+                        n_neuron[str(i)] = 0
                 
                         findMax = max(inputImg[:,:,n_layers,t-1])
                         if ((findMax)) > gam:
