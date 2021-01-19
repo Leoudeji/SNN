@@ -751,6 +751,25 @@ class SNN():
    
     
     
+    
+    
+    
+    #Read Multiple Images
+    def ReadImages():
+        
+        for n in range(10000):
+            img_Test = imageio.imread("test/" + str(n) + ".png")
+            
+        for i in range(60000):
+            img_Train = imageio.imread("training/" + str(i) + ".png")
+        
+        return img_Test, img_Train
+    
+    
+    
+    
+    
+    
     #10 Implement Reward and Punishment (Page 7 of 44)
     
     
