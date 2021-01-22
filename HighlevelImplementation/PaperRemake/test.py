@@ -164,3 +164,31 @@ def testCon3(s3,w3):
      
     return npad_img
 
+
+
+def testLinhibit():
+    #gam = 15
+    
+    a = np.random.uniform(size=(2,3,4,5))
+    img_pixel1, img_pixel2, n_layers,t = a.shape
+    maxim = np.zeros((30))
+    
+             
+    for i in range(img_pixel1):
+        for j in range(img_pixel2):
+                    
+            for Tm in range(t):
+                for n in range(n_layers): #Loop over all layers
+            
+                    #findMax = max(inputImg[i,j,:,t-1])
+                    findMax = max(a[i,j,:,Tm])
+                    maxim = a[i,j,:,Tm] #np.size(maxim) returns 4 here becuase the size of our answer is 4 (i.e. 4 maps)
+                    
+                    '''
+                    printing maxim = a[i,j,:,Tm] gave:
+                        array([0.92491506, 0.75233455, 0.30016982, 0.35181613])
+                    '''
+                    
+    return findMax
+                    
+                    

@@ -642,7 +642,8 @@ class SNN():
                 for Tm in range(t):
                     for n in range(n_layers): #Loop over all layers
                 
-                        findMax = max(inputImg[i,j,:,t-1])
+                        #findMax = max(inputImg[i,j,:,t-1])
+                        findMax = max(inputImg[i,j,:,Tm])
                         if ((findMax)) > gam:
                             
                             #if ((inputImg[i][j][n][Tm])) > gam:
@@ -689,7 +690,7 @@ class SNN():
         
         gam = 15
         
-        n_neuron = {};
+        max_neuron_value = {};
         
         #fh, fw = SK.shape
         inputImg = cmpnd_npad_img
@@ -697,11 +698,14 @@ class SNN():
         img_pixel1, img_pixel2, n_layers,t = np.shape(cmpnd_npad_img)
             
         stdpCompResult = np.zeros((img_pixel1, img_pixel2)) #padded image
+        imgPerMap = np.zeros((img_pixel1, img_pixel2)) #position of maximum potential value
+        finalImage = np.zeros((img_pixel1, img_pixel2, n_layers,t))
             
         
         #LIimg3D = np.zeros((img_pixel1, img_pixel2)) #add t
         findMax = np.zeros((img_pixel1, img_pixel2))
         neuron = np.zeros((img_pixel1, img_pixel2, n_layers,t))
+        maxValue = 0
         
         
         #for every pixel the max should be 30
@@ -710,22 +714,52 @@ class SNN():
         #The difference from lateral inhibition is 'n' in findMax and position of loop over time
                         
                
-        for n in range(n_layers): #Loop over all layers
+        for w in range(n_layers): #Loop over all layers
                    
             for Tm in range(t):
                         
                 for i in range(img_pixel1):
                     for j in range(img_pixel2):
-                        n_neuron[str(i)] = 0
+                        #n_neuron[str(i)] = 0
+                        
+                        imgPerMap = inputImg[:,:,w,Tm]
+                        
+                #imgPerMapList = imgPerMap.reshape(img_pixel1 * img_pixel2,1)
+    
+                #findMax = max(imgPerMapList)
+                    #The result of this "inputImg[:,:,w,:]" is a 24x24x20 cube
+            
+            
+            
+            
+            for i in range(img_pixel1):
+                for j in range(img_pixel2):
+                    if ((imgPerMap[i][j]) > gam):
+                        findMax[i][j] = imgPerMap[i][j]
+                        #maxValue = findMax[i][j].max()
+                        maxValue = findMax.max()
+                        max_neuron_value[str(w)]= imgPerMap.max()
+                        
+                        #Question:: max() function is tricky. maxValue = findMax[i][j].max() gave me a diff result. Why??
+                        
+                    if ((imgPerMap[i][j]) == maxValue):
+                        stdpCompResult[i][j]= 1
+                        finalImage[i][j][w][Tm] = imgPerMap[i][j]
+                        #finalImage[i][j][w][Tm] = 1
+                        
+                    #else:
+                        #stdpCompResult[i][j] = 0
+                        
+                       
+                        
                 
-                        findMax = max(inputImg[:,:,n_layers,t-1])
-                        if ((findMax)) > gam:
-                            
-                            #if ((inputImg[i][j][n][Tm])) > gam:
-                            
-                            neuron = inputImg[i,j,n,Tm]
-                            stdpCompResult = 1
-                               
+                #if ((inputImg[i][j][w][Tm])) > gam:
+                
+                #neuron = inputImg[i,j,w,Tm]
+                #maxPosition = [i, j, w]
+                #stdpCompResult[i][j][w] = 1
+            
+                    
                                
         #Second stage of Spiking competition - sort neurons and apply (+ or - 5 limit filters)
         
@@ -749,7 +783,7 @@ class SNN():
                                             
         
         
-        return stdpCompResult
+        return stdpCompResult, findMax, maxValue, max_neuron_value,finalImage
    
     
     
@@ -772,19 +806,24 @@ class SNN():
     
     
     
+    
     #10 Implement Reward and Punishment (Page 7 of 44)
     
     
     
     
     #11 Implement Learning
+    def learning():
+        return 0
     
     
     
     
     #12 Max Pooling
     
-    
+    def maxPooliing():
+        
+        return 0
     
     
 
@@ -958,9 +997,14 @@ if __name__ == "__main__":
     SK = SNN.STDP_Kernel(11,11)
     
     STDP_CompImg = SNN.STDP_Comp(cumSum)
+    plt.figure()
+    plt.imshow(STDP_CompImg[0])
+    plt.figure()
+    plt.colorbar(plt.pcolormesh(STDP_CompImg[0]))
+    plt.figure()
+    plt.imshow(SNN.threeDImage(STDP_CompImg[4]))
     #plt.figure()
-    #plt.imshow(STDP_CompImg)
-    #plt.colorbar(plt.pcolormesh(LIimage))
+    #plt.colorbar(plt.pcolormesh(STDP_CompImg[4]))
     
     
     '''
